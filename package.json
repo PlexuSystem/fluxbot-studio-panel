@@ -1,0 +1,36 @@
+{
+  "name": "fluxbot-studio-ia-panel",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "contracts:pull": "node scripts/pull-contracts.mjs",
+    "api:generate": "openapi-ts",
+    "api:sync": "npm run contracts:pull && npm run api:generate",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "qa:gate": "npm run contracts:pull && npm run typecheck && npm run lint && npm run test",
+    "build": "next build",
+    "start": "next start",
+    "githooks:install": "git config core.hooksPath .githooks"
+  },
+  "dependencies": {
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.97.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^2.1.8"
+  }
+}
