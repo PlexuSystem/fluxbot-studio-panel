@@ -7,14 +7,14 @@ const navItems = [
 
 export function SiteHeader() {
   return (
-    <header className="border-b border-white/10 bg-slate-950/95 backdrop-blur">
+    <header className="border-b border-[#173b4d]/10 bg-[#fffdf8]/95 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4 md:px-10">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
-          Fluxbot Panel
+        <Link href="/" className="text-lg font-semibold tracking-tight text-[#173b4d]">
+          FluxBot · Operaciones
         </Link>
-        <nav className="flex items-center gap-4 text-sm text-slate-300">
+        <nav className="flex items-center gap-4 text-sm text-[#526a76]">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:text-white">
+            <Link key={item.href} href={item.href} className="hover:text-[#d9654b]">
               {item.label}
             </Link>
           ))}
