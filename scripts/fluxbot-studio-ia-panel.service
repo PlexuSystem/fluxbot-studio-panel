@@ -1,0 +1,17 @@
+[Unit]
+Description=FluxBot Studio IA — Operations panel (Next.js standalone)
+After=network.target
+
+[Service]
+Type=simple
+User=diego
+WorkingDirectory=/home/diego/fluxbot-studio-ia-panel
+EnvironmentFile=/etc/fluxbot-studio-ia-panel.env
+Environment=NODE_ENV=production
+Environment=PORT=3003
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

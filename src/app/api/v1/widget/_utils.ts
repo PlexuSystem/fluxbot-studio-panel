@@ -56,7 +56,10 @@ export function errorJson(message: string, status: number, origin?: string, deta
 }
 
 export function isAdminAuthorized(request: NextRequest) {
-  const expected = process.env.WIDGET_ADMIN_KEY ?? "dev-admin-key";
+  const expected = process.env.WIDGET_ADMIN_KEY;
   const provided = request.headers.get("x-admin-key");
+  if (!expected) {
+    return process.env.NODE_ENV !== "production" && provided === "dev-admin-key";
+  }
   return Boolean(provided && provided === expected);
 }
