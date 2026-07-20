@@ -3,6 +3,7 @@ import Link from "next/link";
 const navItems = [
   { href: "/", label: "Panel" },
   { href: "/training", label: "Entrenamiento" },
+  { href: "/audit", label: "Auditoría" },
 ];
 
 export function SiteHeader() {

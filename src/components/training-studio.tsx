@@ -23,9 +23,9 @@ const defaultConfig: TrainingConfig = {
 };
 
 export function TrainingStudio() {
-  const [tenantId, setTenantId] = useState("tenant_demo");
+  const [tenantId, setTenantId] = useState("");
   const [adminKey, setAdminKey] = useState("");
-  const [installToken, setInstallToken] = useState("tk_demo_fluxbot_123456");
+  const [installToken, setInstallToken] = useState("");
   const [config, setConfig] = useState<TrainingConfig>(defaultConfig);
   const [status, setStatus] = useState<string>("");
   const [testMessage, setTestMessage] = useState("");
@@ -37,6 +37,10 @@ export function TrainingStudio() {
   );
 
   const loadConfig = async () => {
+    if (!tenantId.trim() || !adminKey.trim()) {
+      setStatus("Introduce un tenant y una credencial de administración.");
+      return;
+    }
     setStatus("Cargando configuración...");
     const response = await fetch(trainingUrl, {
       headers: { "x-admin-key": adminKey },
@@ -60,6 +64,10 @@ export function TrainingStudio() {
 
   const saveConfig = async (event: FormEvent) => {
     event.preventDefault();
+    if (!tenantId.trim() || !adminKey.trim()) {
+      setStatus("Introduce un tenant y una credencial de administración.");
+      return;
+    }
     setStatus("Guardando...");
     const response = await fetch(trainingUrl, {
       method: "PUT",
@@ -95,6 +103,10 @@ export function TrainingStudio() {
   };
 
   const runPolicyTest = async () => {
+    if (!installToken.trim() || !testMessage.trim()) {
+      setStatus("Introduce un token de instalación y un mensaje de prueba.");
+      return;
+    }
     setStatus("Probando política...");
     setTestReply("");
     const sessionResponse = await fetch("/api/v1/widget/session", {
@@ -142,35 +154,35 @@ export function TrainingStudio() {
         <h2 className="text-xl font-semibold">Acceso de administración</h2>
         <div className="grid gap-4 md:grid-cols-3">
           <label className="space-y-1">
-            <span className="text-sm text-slate-300">Tenant ID</span>
+            <span className="text-sm font-medium text-[#526a76]">Tenant ID</span>
             <input
               value={tenantId}
               onChange={(event) => setTenantId(event.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+              className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
             />
           </label>
           <label className="space-y-1">
-            <span className="text-sm text-slate-300">Admin key</span>
+            <span className="text-sm font-medium text-[#526a76]">Credencial de administración</span>
             <input
               value={adminKey}
               onChange={(event) => setAdminKey(event.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
-              placeholder="dev-admin-key"
+              type="password"
+              className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
             />
           </label>
           <label className="space-y-1">
-            <span className="text-sm text-slate-300">Install token (test)</span>
+            <span className="text-sm font-medium text-[#526a76]">Token de instalación (prueba)</span>
             <input
               value={installToken}
               onChange={(event) => setInstallToken(event.target.value)}
-              className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+              className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
             />
           </label>
         </div>
         <button
           type="button"
           onClick={loadConfig}
-          className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-400"
+          className="rounded-full bg-[#173b4d] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#264f63]"
         >
           Cargar configuración
         </button>
@@ -179,48 +191,48 @@ export function TrainingStudio() {
       <form onSubmit={saveConfig} className="card space-y-4">
         <h2 className="text-xl font-semibold">Entrenamiento y límites</h2>
         <label className="block space-y-1">
-          <span className="text-sm text-slate-300">Propósito del chatbot</span>
+          <span className="text-sm font-medium text-[#526a76]">Propósito del chatbot</span>
           <textarea
             value={config.purpose}
             onChange={(event) => setConfig({ ...config, purpose: event.target.value })}
-            className="h-20 w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+            className="h-20 w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-sm text-slate-300">Temas permitidos (coma)</span>
+          <span className="text-sm font-medium text-[#526a76]">Temas permitidos (coma)</span>
           <input
             value={config.allowedTopics}
             onChange={(event) => setConfig({ ...config, allowedTopics: event.target.value })}
-            className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+            className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-sm text-slate-300">Temas bloqueados (coma)</span>
+          <span className="text-sm font-medium text-[#526a76]">Temas bloqueados (coma)</span>
           <input
             value={config.blockedTopics}
             onChange={(event) => setConfig({ ...config, blockedTopics: event.target.value })}
-            className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+            className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-sm text-slate-300">Dominios permitidos (coma)</span>
+          <span className="text-sm font-medium text-[#526a76]">Dominios permitidos (coma)</span>
           <input
             value={config.allowedDomains}
             onChange={(event) => setConfig({ ...config, allowedDomains: event.target.value })}
-            className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+            className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
           />
         </label>
         <label className="block space-y-1">
-          <span className="text-sm text-slate-300">Mensaje fuera de alcance</span>
+          <span className="text-sm font-medium text-[#526a76]">Mensaje fuera de alcance</span>
           <input
             value={config.fallbackMessage}
             onChange={(event) => setConfig({ ...config, fallbackMessage: event.target.value })}
-            className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+            className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
           />
         </label>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-1">
-            <span className="text-sm text-slate-300">Rate limit (req/min)</span>
+            <span className="text-sm font-medium text-[#526a76]">Rate limit (req/min)</span>
             <input
               type="number"
               min={1}
@@ -228,23 +240,23 @@ export function TrainingStudio() {
               onChange={(event) =>
                 setConfig({ ...config, minuteRateLimit: Number(event.target.value) })
               }
-              className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+              className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
             />
           </label>
           <label className="space-y-1">
-            <span className="text-sm text-slate-300">Cuota diaria</span>
+            <span className="text-sm font-medium text-[#526a76]">Cuota diaria</span>
             <input
               type="number"
               min={1}
               value={config.dailyQuota}
               onChange={(event) => setConfig({ ...config, dailyQuota: Number(event.target.value) })}
-              className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+              className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
             />
           </label>
         </div>
         <button
           type="submit"
-          className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-400"
+          className="rounded-full bg-[#d9654b] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#bd5039]"
         >
           Guardar entrenamiento
         </button>
@@ -255,25 +267,25 @@ export function TrainingStudio() {
         <input
           value={testMessage}
           onChange={(event) => setTestMessage(event.target.value)}
-          className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2"
+          className="w-full rounded-xl border border-[#173b4d]/15 bg-[#fffdf8] px-3 py-2.5"
           placeholder="Escribe una pregunta para validar in-scope/out-of-scope"
         />
         <button
           type="button"
           onClick={runPolicyTest}
-          className="rounded-lg bg-violet-500 px-4 py-2 text-sm font-medium text-white hover:bg-violet-400"
+          className="rounded-full border border-[#173b4d]/15 px-5 py-2.5 text-sm font-semibold text-[#173b4d] hover:bg-[#173b4d]/5"
         >
           Ejecutar prueba
         </button>
         {testReply ? (
-          <div className="rounded-lg border border-white/10 bg-slate-900 p-3 text-sm text-slate-200">
+          <div className="rounded-xl border border-[#173b4d]/10 bg-[#f4f7f5] p-4 text-sm text-[#173b4d]">
             {testReply}
           </div>
         ) : null}
       </section>
 
       {status ? (
-        <p className="rounded-lg border border-white/10 bg-slate-900 p-3 text-sm text-slate-200">
+        <p className="rounded-xl border border-[#173b4d]/10 bg-[#f4f7f5] p-4 text-sm text-[#173b4d]">
           {status}
         </p>
       ) : null}
