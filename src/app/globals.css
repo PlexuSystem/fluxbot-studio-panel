@@ -23,6 +23,11 @@ a {
   text-decoration: none;
 }
 
+:is(a, button, input, textarea, select):focus-visible {
+  outline: 3px solid rgb(217 101 75 / 0.45);
+  outline-offset: 3px;
+}
+
 .card {
   @apply rounded-2xl border border-[#173b4d]/10 bg-white p-6 shadow-lg shadow-[#173b4d]/[0.08];
 }
