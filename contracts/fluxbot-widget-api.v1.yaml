@@ -1,11 +1,351 @@
 openapi: 3.1.0
 info:
   title: FluxBot External Widget API
-  version: 1.1.0
+  version: 1.2.0
   description: Public contract for the embeddable external widget channel.
 servers:
-  - url: https://api.fluxbot.ai
+  - url: https://api.fluxbotia.com
+tags:
+  - name: Widget
+    description: Embeddable external widget channel
 paths:
+  /api/v1/widget/embed:
+    get:
+      operationId: getWidgetEmbed
+      summary: Render the secure widget frame as an iframe HTML document
+      description: |
+        Returns a self-contained HTML document used as the iframe `src` for the
+        embedded external widget. The frame boots a secure widget session via
+        `POST /api/v1/widget/session` and chats through `POST /api/v1/widget/chat`.
+        It is intended to be framed by a merchant page whose origin matches the
+        tenant allowlist; the parent origin is resolved from the `Referer` header
+        or the `parentOrigin` query parameter.
+      tags:
+        - Widget
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: 'Widget token (format: fbw_live_*)'
+          schema:
+            type: string
+        - name: parentOrigin
+          in: query
+          required: false
+          description: Origin of the hosting page (fallback when no Referer is sent)
+          schema:
+            type: string
+            format: uri
+        - name: locale
+          in: query
+          required: false
+          description: BCP 47 language tag for the frame UI (defaults to es)
+          schema:
+            type: string
+            pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+            default: es
+        - name: position
+          in: query
+          required: false
+          description: Corner where the launcher is rendered
+          schema:
+            type: string
+            enum:
+              - bottom-right
+              - bottom-left
+            default: bottom-right
+        - name: primaryColor
+          in: query
+          required: false
+          description: Primary accent color for the frame header and launcher
+          schema:
+            type: string
+            pattern: '^#[0-9a-fA-F]{6}$'
+            default: '#2563eb'
+        - name: greeting
+          in: query
+          required: false
+          description: Greeting message shown in the frame header
+          schema:
+            type: string
+            maxLength: 200
+            default: 'Hola! ¿Cómo podemos ayudarte?'
+      responses:
+        '200':
+          description: Widget iframe HTML document (framable by allowed origins)
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            text/html:
+              schema:
+                type: string
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+
+  /api/v1/widget/config:
+    get:
+      operationId: getWidgetConfig
+      summary: Fetch the widget appearance and message configuration
+      description: Returns the widget config for the authenticated widget tenant.
+      tags:
+        - Widget
+      security:
+        - widgetToken: []
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: Optional correlation ID for request tracing
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Widget configuration
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetConfig'
+        '401':
+          description: Authentication failed - invalid, expired, or missing token
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        '500':
+          description: Internal server error
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+
+  /api/v1/widget/assistant-config:
+    get:
+      operationId: getWidgetAssistantConfig
+      summary: Fetch the assistant persona and behavior configuration
+      description: Returns the assistant config for the authenticated widget tenant.
+      tags:
+        - Widget
+      security:
+        - widgetToken: []
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: Optional correlation ID for request tracing
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Assistant configuration
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetAssistantConfig'
+        '401':
+          description: Authentication failed - invalid, expired, or missing token
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        '500':
+          description: Internal server error
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+
+  /api/v1/widget/knowledge/search:
+    get:
+      operationId: searchWidgetKnowledge
+      summary: Search the tenant knowledge base
+      description: |
+        Performs a semantic search over the tenant knowledge base. Results are
+        ranked by similarity score; only chunks above the threshold are returned.
+      tags:
+        - Widget
+      security:
+        - widgetToken: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 500
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+        - name: threshold
+          in: query
+          required: false
+          description: Minimum similarity score (0-1) for a result to be returned
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            maximum: 1
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: Optional correlation ID for request tracing
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Knowledge search results
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetKnowledgeSearchResponse'
+        '400':
+          description: Missing or invalid search parameters
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        '401':
+          description: Authentication failed - invalid, expired, or missing token
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        '500':
+          description: Internal server error
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+
+  /api/v1/widget/session:
+    post:
+      operationId: createWidgetSession
+      summary: Create a secure widget frame session
+      description: |
+        Creates a short-lived widget session bound to the parent origin and the
+        authenticated tenant. A session cookie is set on the widget frame; the
+        returned sessionId is also used to authorize chat and connection-test
+        calls from the frame.
+      tags:
+        - Widget
+      security:
+        - widgetToken: []
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: Optional correlation ID for request tracing
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WidgetSessionRequest'
+      responses:
+        '201':
+          description: Widget session created
+          headers:
+            Set-Cookie:
+              description: Secure session cookie for the widget frame (httpOnly, SameSite=None)
+              schema:
+                type: string
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetSessionResponse'
+        '400':
+          description: Validation error - malformed request body
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        '401':
+          description: Authentication failed - invalid, expired, or missing token
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        '403':
+          description: Session rejected - frame origin, parent origin or domain not allowed
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+        '500':
+          description: Internal server error
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+
   /api/v1/widget/chat:
     post:
       operationId: sendWidgetMessage
@@ -166,6 +506,40 @@ paths:
               schema:
                 $ref: '#/components/schemas/PublicApiError'
 
+  /api/v1/widget/health:
+    get:
+      operationId: getWidgetHealth
+      summary: Widget channel health and capability check
+      description: |
+        Public health endpoint reporting the widget channel phase, API version
+        and the current status of each widget endpoint.
+      tags:
+        - Widget
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          required: false
+          description: Optional correlation ID for request tracing
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Widget channel is healthy
+          headers:
+            X-Correlation-Id:
+              $ref: '#/components/headers/X-Correlation-Id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetHealthResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicApiError'
+
 components:
   securitySchemes:
     widgetToken:
@@ -313,6 +687,272 @@ components:
             - string
             - 'null'
           description: Application error code (null if success)
+        requestId:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: Request ID for server-side lookup and debugging
+
+    WidgetConfig:
+      type: object
+      required:
+        - id
+        - tenantId
+        - primaryLocale
+        - supportedLocales
+        - theme
+        - welcomeMessage
+        - offlineMessage
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          description: Widget config identifier
+        tenantId:
+          type: string
+          description: Tenant ID associated with the widget token
+        primaryLocale:
+          type: string
+          pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+          description: Default BCP 47 language tag
+        supportedLocales:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+          description: Locales the widget can render
+        theme:
+          type: object
+          additionalProperties: true
+          description: Theme overrides (colors, radius, fonts) as a free-form object
+        welcomeMessage:
+          type:
+            - string
+            - 'null'
+          description: Welcome message shown when the chat opens
+        offlineMessage:
+          type:
+            - string
+            - 'null'
+          description: Message shown when the assistant is offline
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    WidgetAssistantConfig:
+      type: object
+      required:
+        - id
+        - tenantId
+        - assistantName
+        - persona
+        - tone
+        - systemInstructions
+        - welcomeMessage
+        - primaryLocale
+        - supportedLocales
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          description: Assistant config identifier
+        tenantId:
+          type: string
+          description: Tenant ID associated with the widget token
+        assistantName:
+          type: string
+          description: Display name of the assistant
+        persona:
+          type: string
+          description: Assistant persona definition
+        tone:
+          type: string
+          description: Assistant tone guide
+        systemInstructions:
+          type:
+            - string
+            - 'null'
+          description: System instructions injected into the assistant prompt
+        welcomeMessage:
+          type:
+            - string
+            - 'null'
+          description: Assistant welcome message
+        primaryLocale:
+          type: string
+          pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+          description: Default BCP 47 language tag
+        supportedLocales:
+          type: array
+          items:
+            type: string
+            pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    WidgetKnowledgeSearchResponse:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/WidgetKnowledgeSearchResult'
+          description: Ranked knowledge chunks matching the query
+
+    WidgetKnowledgeSearchResult:
+      type: object
+      required:
+        - chunkId
+        - content
+        - score
+        - documentId
+      properties:
+        chunkId:
+          type: string
+          description: Knowledge chunk identifier
+        content:
+          type: string
+          description: Chunk text content
+        score:
+          type: number
+          format: float
+          description: Similarity score (0-1) of the chunk against the query
+        documentId:
+          type: string
+          description: Source document identifier
+        metadata:
+          type:
+            - object
+            - 'null'
+          additionalProperties: true
+          description: Free-form metadata attached to the chunk
+
+    WidgetSessionRequest:
+      type: object
+      required:
+        - token
+        - parentOrigin
+        - parentUrl
+        - locale
+      properties:
+        token:
+          type: string
+          description: 'Widget token (format: fbw_live_*)'
+        parentOrigin:
+          type: string
+          format: uri
+          description: Origin of the hosting page (must match tenant allowlist)
+        parentUrl:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: Full URL of the hosting page
+        locale:
+          type: string
+          pattern: '^[a-z]{2}(-[A-Z]{2})?$'
+          description: BCP 47 language tag
+
+    WidgetSessionResponse:
+      type: object
+      required:
+        - status
+        - sessionId
+        - expiresAt
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+          description: Session creation status
+        sessionId:
+          type: string
+          description: 'Short-lived widget session ID (format: fbs_*)'
+        expiresAt:
+          type: string
+          format: date-time
+          description: UTC time when the session expires
+        requestId:
+          type: string
+          format: uuid
+          description: Request ID for server-side lookup and debugging
+
+    WidgetHealthResponse:
+      type: object
+      required:
+        - status
+        - phase
+        - version
+        - timestamp
+        - endpoints
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+          description: Overall channel health
+        phase:
+          type: string
+          description: Current integration phase label
+        version:
+          type: string
+          description: Widget channel API version
+        timestamp:
+          type: string
+          format: date-time
+          description: UTC time of the health response
+        endpoints:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/WidgetEndpointHealth'
+          description: Per-endpoint health and security metadata
+        requestId:
+          type: string
+          format: uuid
+          description: Request ID for server-side lookup and debugging
+
+    WidgetEndpointHealth:
+      type: object
+      required:
+        - method
+        - path
+        - status
+      properties:
+        method:
+          type: string
+          enum:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+          description: HTTP method of the endpoint
+        path:
+          type: string
+          description: Absolute endpoint path
+        status:
+          type: string
+          enum:
+            - implemented
+            - in-development
+            - deprecated
+          description: Implementation status of the endpoint
+        security:
+          type: array
+          items:
+            type: string
+          description: Security mechanisms applied to the endpoint
 
     WidgetConnectionTestRequest:
       type: object
@@ -349,6 +989,15 @@ components:
           $ref: '#/components/schemas/StorefrontPaymentInfoDto'
           description: Storefront payment configuration returned by connection-test when available.
           nullable: true
+        message:
+          type: string
+          description: Human-readable connection status message
+        requestId:
+          type:
+            - string
+            - 'null'
+          format: uuid
+          description: Request ID for server-side lookup and debugging
 
     PublicApiError:
       type: object

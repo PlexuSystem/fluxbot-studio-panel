@@ -45,7 +45,9 @@ type AuditLog = {
 };
 
 const DEV_SECRET = "dev-widget-session-secret-change-in-production";
-const sessionSecret = process.env.WIDGET_SESSION_SECRET ?? DEV_SECRET;
+const sessionSecret =
+  process.env.WIDGET_SESSION_SECRET ??
+  (process.env.NODE_ENV === "production" ? undefined : DEV_SECRET);
 
 const tenants = new Map<string, TenantTrainingConfig>([
   [
@@ -53,7 +55,7 @@ const tenants = new Map<string, TenantTrainingConfig>([
     {
       tenantId: "tenant_demo",
       installToken: "tk_demo_fluxbot_123456",
-      allowedDomains: ["localhost", "127.0.0.1", "example.com"],
+      allowedDomains: ["localhost", "127.0.0.1", "example.com", "fluxbotia.com", "panel.fluxbotia.com"],
       purpose:
         "Asistente comercial para resolver preguntas sobre instalación, planes, soporte y demo del chatbot Fluxbot.",
       allowedTopics: [
@@ -129,6 +131,11 @@ function base64UrlDecode(value: string) {
 }
 
 function signPayload(payloadBase64: string) {
+  if (!sessionSecret) {
+    throw new Error(
+      "WIDGET_SESSION_SECRET is not configured. Refusing to sign widget session tokens in production.",
+    );
+  }
   return crypto.createHmac("sha256", sessionSecret).update(payloadBase64).digest("base64url");
 }
 

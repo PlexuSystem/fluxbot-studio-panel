@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createSessionToken,
   evaluatePolicy,
@@ -42,5 +42,23 @@ describe("widget-security", () => {
     expect(decision.inScope).toBe(false);
     expect(decision.blockedByPolicy).toBe(true);
     expect(decision.reason).toBe("jailbreak_detected");
+  });
+
+  it("refuses to sign session tokens in production when WIDGET_SESSION_SECRET is missing", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("WIDGET_SESSION_SECRET", "");
+    vi.resetModules();
+    try {
+      const mod = await import("@/lib/widget-security");
+      expect(() =>
+        mod.createSessionToken({
+          installToken: "tk_demo_fluxbot_123456",
+          domain: "localhost",
+        }),
+      ).toThrow(/WIDGET_SESSION_SECRET/);
+    } finally {
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
   });
 });

@@ -23,6 +23,8 @@ const defaultConfig: TrainingConfig = {
 };
 
 export function TrainingStudio() {
+  const widgetDomain =
+    typeof window !== "undefined" ? window.location.hostname : "panel.fluxbotia.com";
   const [tenantId, setTenantId] = useState("");
   const [adminKey, setAdminKey] = useState("");
   const [installToken, setInstallToken] = useState("");
@@ -114,7 +116,7 @@ export function TrainingStudio() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         token: installToken,
-        domain: "localhost",
+        domain: widgetDomain,
       }),
     });
     if (!sessionResponse.ok) {
@@ -131,7 +133,7 @@ export function TrainingStudio() {
       },
       body: JSON.stringify({
         message: testMessage,
-        domain: "localhost",
+        domain: widgetDomain,
       }),
     });
     const chatData = await chatResponse.json();

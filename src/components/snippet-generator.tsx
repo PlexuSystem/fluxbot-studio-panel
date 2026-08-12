@@ -16,27 +16,31 @@ type WidgetConfig = {
   endpoint: string;
 };
 
+const DEFAULT_GATEWAY = "https://panel.fluxbotia.com/api/v1/widget";
+
 const initialConfig: WidgetConfig = {
   token: "demo-token-123",
   domain: "example.com",
-  gateway: "https://tu-dominio.com/api/v1/widget",
+  gateway: DEFAULT_GATEWAY,
   securityMode: "gateway",
   position: "right",
   primaryColor: "#0ea5e9",
   greeting: "Hola, ¿en qué puedo ayudarte hoy?",
-  endpoint: "https://api.tu-dominio.com/chat",
+  endpoint: "https://api.fluxbotia.com/chat",
 };
 
 export function SnippetGenerator() {
   const searchParams = useSearchParams();
   const [config, setConfig] = useState<WidgetConfig>(() => {
+    const gateway =
+      typeof window !== "undefined" ? `${window.location.origin}/api/v1/widget` : DEFAULT_GATEWAY;
     if (typeof window !== "undefined" && searchParams) {
       const domainParam = searchParams.get("domain");
       if (domainParam) {
-        return { ...initialConfig, domain: domainParam };
+        return { ...initialConfig, gateway, domain: domainParam };
       }
     }
-    return initialConfig;
+    return { ...initialConfig, gateway };
   });
   const [copied, setCopied] = useState(false);
   const [isConnectionValid, setIsConnectionValid] = useState(false);
@@ -44,7 +48,7 @@ export function SnippetGenerator() {
 
   const scriptUrl =
     typeof window === "undefined"
-      ? "https://tu-dominio.com/chat-widget.js"
+      ? "https://cdn.fluxbotia.com/chat-widget.js"
       : `${window.location.origin}/chat-widget.js`;
 
   const snippet = useMemo(
@@ -139,7 +143,7 @@ export function SnippetGenerator() {
             value={config.gateway}
             onChange={(event) => setConfig({ ...config, gateway: event.target.value })}
             className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm"
-            placeholder="https://tu-dominio.com/api/v1/widget"
+            placeholder="https://panel.fluxbotia.com/api/v1/widget"
             aria-label="Security gateway"
           />
         </label>
@@ -149,7 +153,7 @@ export function SnippetGenerator() {
             value={config.endpoint}
             onChange={(event) => setConfig({ ...config, endpoint: event.target.value })}
             className="w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm"
-            placeholder="https://api.ejemplo.com"
+            placeholder="https://api.fluxbotia.com"
             aria-label="API Endpoint"
           />
         </label>

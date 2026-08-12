@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | Fluxbot Panel",
   },
   description: "Panel operativo para administrar clientes, entrenamiento y auditoría del chatbot.",
-  metadataBase: new URL("https://panel.tu-dominio.com"),
+  metadataBase: new URL("https://panel.fluxbotia.com"),
   openGraph: {
     title: "Fluxbot Panel",
     description: "Gestiona la operativa del chatbot en un panel separado de la web pública.",

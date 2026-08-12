@@ -13,8 +13,14 @@ interface PresetSnippet {
 }
 
 function getPreset(type: PresetType, domain: string, token: string): PresetSnippet {
-  const scriptUrl = typeof window !== "undefined" ? `${window.location.origin}/chat-widget.js` : "https://tu-dominio.com/chat-widget.js";
-  const gatewayUrl = typeof window !== "undefined" ? `${window.location.origin}/api/v1/widget` : "https://tu-dominio.com/api/v1/widget";
+  const scriptUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/chat-widget.js`
+      : "https://cdn.fluxbotia.com/chat-widget.js";
+  const gatewayUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/v1/widget`
+      : "https://api.fluxbotia.com/api/v1/widget";
 
   const presets: Record<PresetType, PresetSnippet> = {
     html: {

@@ -117,7 +117,7 @@ export function ConnectionTester({ onValidationChange }: ConnectionTesterProps) 
           <span className="text-xs text-slate-400">Endpoint API *</span>
           <input
             type="url"
-            placeholder="https://api.ejemplo.com"
+            placeholder="https://api.fluxbotia.com"
             value={endpoint}
             onChange={(e) => setEndpoint(e.target.value)}
             disabled={status === "testing"}
